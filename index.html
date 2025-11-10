@@ -91,7 +91,7 @@
         }
 
         .input-field:focus {
-            ring: 2px solid #9333EA;
+            shape-margin:2px solid #9333EA 50%;
             border-color: #7C3AED;
             box-shadow: 0 6px 20px rgba(147, 51, 234, 0.5);
         }
@@ -181,6 +181,50 @@
             display: grid;
             grid-template-columns: 2fr 1fr;
             gap: 20px;
+        }
+
+        .search-container {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .search-box {
+            position: relative;
+            width: 100%;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 15px 50px 15px 20px;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            font-size: 16px;
+            outline: none;
+            transition: all 0.3s;
+        }
+
+        .search-input:focus {
+            border-color: #9333EA;
+            box-shadow: 0 4px 12px rgba(147, 51, 234, 0.2);
+        }
+
+        .search-icon {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 20px;
+            color: #9333EA;
+            pointer-events: none;
+        }
+
+        .search-results-info {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #666;
         }
 
         .categories {
@@ -838,6 +882,14 @@
 
         <div class="main-content">
             <div>
+                <div class="search-container">
+                    <div class="search-box">
+                        <input type="text" id="searchInput" class="search-input" placeholder="🔍 Search for products..." oninput="handleSearch()">
+                        <span class="search-icon">🔍</span>
+                    </div>
+                    <div id="searchResultsInfo" class="search-results-info"></div>
+                </div>
+
                 <div class="categories">
                     <button class="category-btn active" onclick="filterCategory('all')">All Products</button>
                     <button class="category-btn" onclick="filterCategory('stationery')">Stationery</button>
@@ -990,6 +1042,7 @@
         let cart = [];
         let currentCategory = 'all';
         let userName = '';
+        let searchQuery = '';
 
         // Animation for login page
         function animateItems() {
@@ -1011,6 +1064,12 @@
                     item.style.top = y + 'px';
                 }, 50);
             });
+        }
+
+        // Search Handler
+        function handleSearch() {
+            searchQuery = document.getElementById('searchInput').value.toLowerCase().trim();
+            renderProducts();
         }
 
         // Login Handler
@@ -1035,16 +1094,39 @@
             const buttons = document.querySelectorAll('.category-btn');
             buttons.forEach(btn => btn.classList.remove('active'));
             event.target.classList.add('active');
+            searchQuery = '';
+            document.getElementById('searchInput').value = '';
             renderProducts();
         }
 
         // Render Products
         function renderProducts() {
-            const filteredProducts = currentCategory === 'all' 
+            let filteredProducts = currentCategory === 'all' 
                 ? products 
                 : products.filter(p => p.category === currentCategory);
 
+            // Apply search filter
+            if (searchQuery) {
+                filteredProducts = filteredProducts.filter(p => 
+                    p.name.toLowerCase().includes(searchQuery)
+                );
+            }
+
+            // Update search results info
+            const searchResultsInfo = document.getElementById('searchResultsInfo');
+            if (searchQuery) {
+                searchResultsInfo.textContent = `Found ${filteredProducts.length} result(s) for "${searchQuery}"`;
+            } else {
+                searchResultsInfo.textContent = '';
+            }
+
             const grid = document.getElementById('productsGrid');
+            
+            if (filteredProducts.length === 0) {
+                grid.innerHTML = '<p style="text-align: center; color: #666; padding: 40px;">No products found matching your search.</p>';
+                return;
+            }
+
             grid.innerHTML = filteredProducts.map(product => {
                 const inCart = cart.find(item => item.id === product.id);
                 
@@ -1222,9 +1304,9 @@
                 </div>
             `).join('');
 
-            // document.getElementById('subtotalAmount').textContent = ' + subtotal.toFixed(2);
-            // document.getElementById('taxAmount').textContent = ' + tax.toFixed(2);
-            // document.getElementById('finalTotal').textContent = ' + total.toFixed(2);
+            document.getElementById('subtotalAmount').textContent =  + subtotal.toFixed(2)
+            document.getElementById('taxAmount').textContent =  + tax.toFixed(2)
+            document.getElementById('finalTotal').textContent =  + total.toFixed(2)
         }
 
         // Back to Shopping
